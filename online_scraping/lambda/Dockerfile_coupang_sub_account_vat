@@ -1,0 +1,36 @@
+FROM mcr.microsoft.com/playwright:v1.52.0-jammy
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y \
+    g++ \
+    make \
+    cmake \
+    unzip \
+    libcurl4-openssl-dev \
+    autoconf \
+    libtool
+
+ENV NPM_CONFIG_CACHE=/tmp/.npm
+ENV PLAYWRIGHT_BROWSERS_PATH=0
+
+RUN npm install aws-lambda-ric -g
+
+ENV IS_DOCKER=true
+
+COPY *.json ./
+COPY *.ts ./
+COPY db/*.ts ./db/
+COPY gmail/*.ts ./gmail/
+COPY gmail/*.json ./gmail/
+
+RUN npm ci
+RUN npm run build
+
+RUN npx playwright install chromium
+
+RUN cp *.json dist/
+
+ENTRYPOINT ["/bin/npx", "aws-lambda-ric"]
+CMD ["dist/main_coupang_sub_account_vat.handler"]
+

@@ -1,0 +1,68 @@
+{
+  "vpc-provider:account=778510488153:filter.vpc-id=vpc-01ba7e04e8d32d5c4:region=ap-northeast-2:returnAsymmetricSubnets=true": {
+    "vpcId": "vpc-01ba7e04e8d32d5c4",
+    "vpcCidrBlock": "10.0.0.0/16",
+    "ownerAccountId": "778510488153",
+    "availabilityZones": [],
+    "subnetGroups": [
+      {
+        "name": "Public",
+        "type": "Public",
+        "subnets": [
+          {
+            "subnetId": "subnet-070b250fd78aa1492",
+            "cidr": "10.0.0.0/20",
+            "availabilityZone": "ap-northeast-2a",
+            "routeTableId": "rtb-029adf23442797f65"
+          },
+          {
+            "subnetId": "subnet-093c44924ec36bc44",
+            "cidr": "10.0.16.0/20",
+            "availabilityZone": "ap-northeast-2b",
+            "routeTableId": "rtb-029adf23442797f65"
+          }
+        ]
+      },
+      {
+        "name": "Isolated",
+        "type": "Isolated",
+        "subnets": [
+          {
+            "subnetId": "subnet-0fa34e99ea95886c6",
+            "cidr": "10.0.192.0/20",
+            "availabilityZone": "ap-northeast-2a",
+            "routeTableId": "rtb-01189257b08d4cdf6"
+          },
+          {
+            "subnetId": "subnet-0b672ee3eeb1b131e",
+            "cidr": "10.0.208.0/20",
+            "availabilityZone": "ap-northeast-2b",
+            "routeTableId": "rtb-01189257b08d4cdf6"
+          }
+        ]
+      },
+      {
+        "name": "Private",
+        "type": "Private",
+        "subnets": [
+          {
+            "subnetId": "subnet-057bef8492aac53c1",
+            "cidr": "10.0.128.0/20",
+            "availabilityZone": "ap-northeast-2a",
+            "routeTableId": "rtb-0d037006ffa2e0fc5"
+          },
+          {
+            "subnetId": "subnet-091af3ae71bfacdec",
+            "cidr": "10.0.144.0/20",
+            "availabilityZone": "ap-northeast-2b",
+            "routeTableId": "rtb-079eba3059a1ce75e"
+          }
+        ]
+      }
+    ]
+  },
+  "acknowledged-issue-numbers": [
+    34892,
+    34892
+  ]
+}
