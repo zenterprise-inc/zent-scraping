@@ -5,4 +5,5 @@ export enum OnlineMall {
   Ddangyo = 'DDA',
   SmartStore = 'SS',
   Coupang = 'CP',
+  SmartPlace = 'SP',
 }
