@@ -4,8 +4,6 @@ import { OpenAIClient } from './open_ai_client';
 import { OperationType, StatusType } from './redis';
 import { Log } from './log';
 
-const AUTH_TIMEOUT = 60 * 3 - 1;
-const MAX_RETRY_AUTH_COUNT = 3;
 const MAX_RESEND_AUTH_NUMBER = 3;
 
 export abstract class AbstractSmartStoreLogin extends AbstractScraper {
@@ -287,7 +285,7 @@ export abstract class AbstractSmartStoreLogin extends AbstractScraper {
         await this.scrapeWright.waitForTimeout(4000);
       }
 
-      return await this.checkCommerceLogin();
+      return true;
     } else {
       const buffer = await this.scrapeWright.screenshotFullPage();
       await this.dbLogger.writeLogWithInfo(
@@ -406,7 +404,7 @@ export abstract class AbstractSmartStoreLogin extends AbstractScraper {
         return false;
       }
 
-      return await this.checkCommerceLogin();
+      return true;
     }
   }
 
@@ -456,36 +454,9 @@ export abstract class AbstractSmartStoreLogin extends AbstractScraper {
     }
 
     if (isLoginSuccess) {
-      return await this.checkCommerceLogin();
+      return true;
     } else {
       await this.dbLogger.writeLog(Log.NAVER_COMMERCE_CAPTCHA_FAILURE);
-      return false;
-    }
-  }
-
-  async checkCommerceLogin(): Promise<boolean> {
-    if (
-      this.scrapeWright
-        .url()
-        .startsWith('https://accounts.commerce.naver.com/certify')
-    ) {
-      await this.dbLogger.writeLog(Log.NAVER_COMMERCE_REDIRECT_TO_CERTIFY);
-      return true;
-    }
-
-    if (
-      this.scrapeWright.url().startsWith('https://sell.smartstore.naver.com')
-    ) {
-      await this.dbLogger.writeLog(Log.NAVER_COMMERCE_REDIRECT_TO_SMARTSTORE);
-      return true;
-    } else {
-      const buffer = await this.scrapeWright.screenshotFullPage();
-
-      await this.dbLogger.writeLogWithInfo(
-        Log.NAVER_COMMERCE_FAIL_TO_REDIRECT_TO_SMARTSTORE,
-        this.scrapeWright.url(),
-        buffer,
-      );
       return false;
     }
   }
