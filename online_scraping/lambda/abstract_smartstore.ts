@@ -82,6 +82,27 @@ export abstract class AbstractSmartStore extends AbstractSmartStoreLogin {
       await this.dbLogger.writeLog(Log.NAVER_COMMERCE_REDIRECT_TO_SMARTSTORE);
       return true;
     } else {
+      if (
+        this.scrapeWright
+          .url()
+          .startsWith('https://accounts.commerce.naver.com/switch-begin')
+      ) {
+      } else if (
+        this.scrapeWright
+          .url()
+          .startsWith('https://accounts.commerce.naver.com/signup')
+      ) {
+      } else if (
+        await this.scrapeWright.exists(
+          '//p[contains(text(), "허용하지 않은 지역에서 로그인")]',
+        )
+      ) {
+      } else if (
+        await this.scrapeWright.exists(
+          '//p[contains(text(), "커머스 ID 회원 탈퇴한 아이디입니다")]',
+        )
+      ) {
+      }
       const buffer = await this.scrapeWright.screenshotFullPage();
 
       await this.dbLogger.writeLogWithInfo(
@@ -107,10 +128,13 @@ export abstract class AbstractSmartStore extends AbstractSmartStoreLogin {
     await this.dbLogger.writeLog(Log.NAVER_COMMERCE_REQUEST_SELLER_INFO);
 
     if (!res || !res.represent || !res.represent.identity) {
-      await this.dbLogger.writeLogWithInfo(
-        Log.NAVER_COMMERCE_FAIL_TO_GET_SELLER_INFO,
-        JSON.stringify(res),
-      );
+      if (res?.represent?.identity === '') {
+      } else {
+        await this.dbLogger.writeLogWithInfo(
+          Log.NAVER_COMMERCE_FAIL_TO_GET_SELLER_INFO,
+          JSON.stringify(res),
+        );
+      }
       return '';
     }
 
@@ -181,10 +205,13 @@ export abstract class AbstractSmartStore extends AbstractSmartStoreLogin {
     );
 
     if (!channelRes || !Array.isArray(channelRes) || channelRes.length === 0) {
-      await this.dbLogger.writeLogWithInfo(
-        Log.NAVER_COMMERCE_FAIL_TO_GET_CHANNELS,
-        JSON.stringify(channelRes),
-      );
+      if (channelRes?.code === 'NOT_FOUND') {
+      } else {
+        await this.dbLogger.writeLogWithInfo(
+          Log.NAVER_COMMERCE_FAIL_TO_GET_CHANNELS,
+          JSON.stringify(channelRes),
+        );
+      }
       return false;
     }
 
@@ -321,8 +348,11 @@ export abstract class AbstractSmartStore extends AbstractSmartStoreLogin {
     // {"code":"BAD_REQUEST","message":"이름 항목에 허용 되지 않는 문자가 있습니다.","timestamp":"2025-06-06T12:28:16.045+0000","needAlert":true}
     // {"code":"BAD_REQUEST","message":"매니저 초대 권한이 없습니다.","timestamp":"2025-06-02T05:22:56.771+0000","needAlert":true}
     // {"code":"INTERNAL_SERVER_ERROR","message":"정상상태인 스토어에 대해서만 초대발송이 가능합니다.","timestamp":"2025-06-02T05:24:29.480+0000","needAlert":true}
+    // {"code": "INTERNAL_SERVER_ERROR", "message": "정상 또는 이용정지 상태인 스토어에 대해서만 초대발송이 가능합니다.", "timestamp": "2025-07-10T13:44:49.727+0000", "needAlert": true}
     console.log(`Sub account request response: --${res}--`);
     await this.dbLogger.writeLog(Log.NAVER_COMMERCE_REQUEST_SUB_ACCOUNT);
+    if (res && res.code) {
+    }
 
     const success = res === '';
     await this.redisClient.set(
