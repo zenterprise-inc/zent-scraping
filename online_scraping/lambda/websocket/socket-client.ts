@@ -37,6 +37,18 @@ export class SocketClient {
     this.socket.on(SOCKET_EVENTS.RECEIVE_MESSAGE, cb);
   }
 
+  joinRoom(room: string) {
+    if (!this.socket) throw new Error('Socket not connected');
+
+    this.socket.emit(SOCKET_EVENTS.JOIN_ROOM, { room });
+  }
+
+  leaveRoom(room: string) {
+    if (!this.socket) throw new Error('Socket not connected');
+
+    this.socket.emit(SOCKET_EVENTS.LEAVE_ROOM, { room });
+  }
+
   disconnect() {
     this.socket?.disconnect();
     this.socket = null;
