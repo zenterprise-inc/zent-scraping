@@ -110,13 +110,14 @@ export abstract class AbstractSmartStoreLogin extends AbstractScraper {
 
       let resendCount = 0;
       for (let i = 0; i < MAX_RESEND_AUTH_NUMBER + 2; i++) {
-        const lpushTs = await this.redisClient.lpush({
+        await this.sendMessage({
           action: true,
-          type: OperationType.APP_CONFIRM.toString(),
+          type: OperationType.APP_CONFIRM,
           data: {
             resendCount: resendCount,
           },
         });
+
         let urlChanged = false;
         let requireRetry = false;
         for (let j = 0; j < 120; j++) {
@@ -125,25 +126,22 @@ export abstract class AbstractSmartStoreLogin extends AbstractScraper {
               .url()
               .startsWith('https://accounts.commerce.naver.com/login')
           ) {
-            await this.redisClient.lpush({
+            await this.sendMessage({
               action: false,
-              type: StatusType.APP_CONFIRM_SUCCESS.toString(),
+              type: StatusType.APP_CONFIRM_SUCCESS,
             });
             urlChanged = true;
             break;
           }
 
-          const json = await this.redisClient.brpop(1, lpushTs);
-          if (
-            json != null &&
-            json.type === OperationType.APP_CONFIRM.toString()
-          ) {
+          const json = await this.waitMessage(1000);
+          if (json != null && json.type === OperationType.APP_CONFIRM) {
             requireRetry = true;
             resendCount++;
             if (resendCount > MAX_RESEND_AUTH_NUMBER) {
-              await this.redisClient.lpush({
+              await this.sendMessage({
                 action: false,
-                type: StatusType.MAX_RESEND_REACHED.toString(),
+                type: StatusType.MAX_RESEND_REACHED,
               });
             }
             await this.scrapeWright.click('//button[@id="resendBtn"]');
@@ -168,9 +166,9 @@ export abstract class AbstractSmartStoreLogin extends AbstractScraper {
         }
 
         if (!requireRetry) {
-          await this.redisClient.lpush({
+          await this.sendMessage({
             action: false,
-            type: StatusType.AUTH_TIMEOUT.toString(),
+            type: StatusType.AUTH_TIMEOUT,
           });
           await this.dbLogger.writeLog(Log.NAVER_2FA_AUTH_TIMEOUT);
           return false;
@@ -349,9 +347,9 @@ export abstract class AbstractSmartStoreLogin extends AbstractScraper {
 
   async loginCommerce(): Promise<boolean> {
     await this.dbLogger.writeLog(Log.NAVER_COMMERCE_START_LOGIN);
-    await this.redisClient.lpush({
+    await this.sendMessage({
       action: false,
-      type: StatusType.START_COMMERCE_LOGIN.toString(),
+      type: StatusType.START_COMMERCE_LOGIN,
     });
     await this.scrapeWright.goto(
       'https://accounts.commerce.naver.com/login?url=https%3A%2F%2Fsell.smartstore.naver.com%2F%23%2Flogin-callback',
@@ -390,14 +388,14 @@ export abstract class AbstractSmartStoreLogin extends AbstractScraper {
         )
       ) {
         if (this.naverLog === Log.NAVER_WRONG_ACCOUNT) {
-          await this.redisClient.lpush({
+          await this.sendMessage({
             action: false,
-            type: StatusType.WRONG_ACCOUNT.toString(),
+            type: StatusType.WRONG_ACCOUNT,
           });
         } else {
-          await this.redisClient.lpush({
+          await this.sendMessage({
             action: false,
-            type: StatusType.LINK_FAILURE.toString(),
+            type: StatusType.LINK_FAILURE,
           });
         }
         await this.dbLogger.writeLog(Log.NAVER_COMMERCE_WRONG_ACCOUNT);

@@ -5,12 +5,15 @@ import { AppDataSource } from './db/datasource';
 import { DBLogger } from './db_logger';
 import { promises as fs } from 'fs';
 import { Log } from './log';
+import { SocketClient } from './websocket/socket-client';
+import { ScrapingMessage } from './model/scraping-message.type';
 
 const isDocker = process.env.IS_DOCKER === 'true';
 
 export abstract class AbstractScraper {
   protected scrapeWright!: ScrapeWright;
   protected redisClient: RedisClient;
+  protected socketClient: SocketClient;
   protected dbLogger: DBLogger;
   private readonly recordVideo: boolean = false;
 
@@ -22,6 +25,7 @@ export abstract class AbstractScraper {
   ) {
     this.scrapeWright = new ScrapeWright();
     this.redisClient = new RedisClient(onlineMall, userId, bizNo);
+    this.socketClient = new SocketClient(onlineMall, userId, bizNo);
     this.dbLogger = new DBLogger(onlineMall, userId, bizNo, this.redisClient);
     this.recordVideo = recordVideo;
   }
@@ -29,6 +33,8 @@ export abstract class AbstractScraper {
   async init(): Promise<void> {
     await this.scrapeWright.init(this.recordVideo);
     await this.redisClient.connect();
+    this.socketClient.connect();
+    this.socketClient.joinRoom();
     await AppDataSource.initialize();
   }
 
@@ -40,6 +46,8 @@ export abstract class AbstractScraper {
       await this.saveVideo();
     }
     await this.redisClient.quit();
+    this.socketClient.leaveRoom();
+    this.socketClient.disconnect();
     await AppDataSource.destroy();
   }
 
@@ -69,6 +77,34 @@ export abstract class AbstractScraper {
         console.error('saving video error:', error);
       }
     }
+  }
+
+  async sendMessage(message: ScrapingMessage): Promise<void> {
+    this.socketClient.sendMessage(message);
+    await this.redisClient.lpush(message);
+  }
+
+  async waitMessage(timoutMS: number): Promise<ScrapingMessage | null> {
+    const result = await this.socketClient.waitForEvent<ScrapingMessage>(
+      'message',
+      timoutMS,
+    );
+    if (!result.ok) {
+      if (result.timeout) {
+        console.log('응답 타임아웃!');
+      } else {
+        console.log('기타 오류', result.error);
+      }
+      return null;
+    }
+
+    if (!result.data) {
+      return null;
+    }
+
+    await this.redisClient.lpush(result.data);
+
+    return result.data;
   }
 
   async run(): Promise<any> {

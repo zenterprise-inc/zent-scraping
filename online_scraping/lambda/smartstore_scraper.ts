@@ -36,11 +36,11 @@ export class SmartStoreScraper extends AbstractSmartStore {
   async process(): Promise<any> {
     const data = {
       action: false,
-      type: StatusType.TIMEOUT.toString(),
+      type: StatusType.TIMEOUT,
     };
     let timeoutId = setTimeout(
       async () => {
-        await this.redisClient.lpush(data);
+        await this.sendMessage(data);
       },
       10 * 60 * 1000,
     );
@@ -63,9 +63,9 @@ export class SmartStoreScraper extends AbstractSmartStore {
 
       return matchedBizNo;
     } catch (e) {
-      await this.redisClient.lpush({
+      await this.sendMessage({
         action: false,
-        type: StatusType.TEMPORARY_ERROR.toString(),
+        type: StatusType.TEMPORARY_ERROR,
       });
       await this.dbLogger.writeLogWithInfo(
         Log.TEMPORARY_ERROR,

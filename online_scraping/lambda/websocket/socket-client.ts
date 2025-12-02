@@ -1,18 +1,36 @@
 import { io, Socket } from 'socket.io-client';
 import { SOCKET_EVENTS } from './events';
+import { OnlineMall } from '../online_mall';
+import { ScrapingMessage } from '../model/scraping-message.type';
+
+const WS_AUTH_TOKEN = process.env.WS_AUTH_TOKEN || '';
+
+interface WaitForEventResult<T = any> {
+  ok: boolean;
+  timeout?: boolean;
+  data?: T;
+  error?: any;
+}
 
 export class SocketClient {
   private socket: Socket | null = null;
+  private onlineMall: OnlineMall;
+  private readonly userId: string;
+  private readonly bizNo: string;
 
-  constructor(private token: string) {}
+  constructor(onlineMall: OnlineMall, userId: string, bizNo: string) {
+    this.onlineMall = onlineMall;
+    this.userId = userId;
+    this.bizNo = bizNo;
+  }
 
   connect() {
     if (this.socket) return this.socket;
 
-    this.socket = io('http://localhost:3000/chat', {
+    this.socket = io('http://localhost:3000', {
       transports: ['websocket'],
       extraHeaders: {
-        Authorization: `Bearer ${this.token}`,
+        Authorization: `Bearer ${WS_AUTH_TOKEN}`,
       },
     });
 
@@ -27,26 +45,53 @@ export class SocketClient {
     return this.socket;
   }
 
-  sendMessage(message: string) {
+  sendMessage(message: ScrapingMessage) {
     if (!this.socket) throw new Error('Socket not connected');
-    this.socket.emit(SOCKET_EVENTS.SEND_MESSAGE, { message });
+    this.socket.emit(SOCKET_EVENTS.MESSAGE, message);
   }
 
   onMessage(cb: (msg: any) => void) {
     if (!this.socket) throw new Error('Socket not connected');
-    this.socket.on(SOCKET_EVENTS.RECEIVE_MESSAGE, cb);
+    this.socket.on(SOCKET_EVENTS.MESSAGE, cb);
   }
 
-  joinRoom(room: string) {
-    if (!this.socket) throw new Error('Socket not connected');
+  waitForEvent<T = any>(
+    event: string,
+    timeoutMs = 5000,
+  ): Promise<WaitForEventResult<T>> {
+    return new Promise((resolve, reject) => {
+      let timer: NodeJS.Timeout;
 
-    this.socket.emit(SOCKET_EVENTS.JOIN_ROOM, { room });
+      this.socket!.once(event, (data: T) => {
+        clearTimeout(timer);
+        resolve({ ok: true, data });
+      });
+
+      timer = setTimeout(() => {
+        this.socket!.off(event);
+        resolve({ ok: false, timeout: true });
+      }, timeoutMs);
+    });
   }
 
-  leaveRoom(room: string) {
+  joinRoom() {
     if (!this.socket) throw new Error('Socket not connected');
 
-    this.socket.emit(SOCKET_EVENTS.LEAVE_ROOM, { room });
+    this.socket.emit(SOCKET_EVENTS.JOIN_ROOM, {
+      appCode: this.onlineMall.toString(),
+      userId: this.userId,
+      bsno: this.bizNo,
+    });
+  }
+
+  leaveRoom() {
+    if (!this.socket) throw new Error('Socket not connected');
+
+    this.socket.emit(SOCKET_EVENTS.LEAVE_ROOM, {
+      appCode: this.onlineMall.toString(),
+      userId: this.userId,
+      bsno: this.bizNo,
+    });
   }
 
   disconnect() {

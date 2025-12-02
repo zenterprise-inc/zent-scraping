@@ -111,9 +111,9 @@ export class CoupangScraper extends AbstractCoupang {
         '//span[contains(text(), "비밀번호가 다릅니다")]',
       )
     ) {
-      await this.redisClient.lpush({
+      await this.sendMessage({
         action: false,
-        type: StatusType.WRONG_ACCOUNT.toString(),
+        type: StatusType.WRONG_ACCOUNT,
       });
       await this.dbLogger.writeLog(Log.COUPANG_WRONG_ACCOUNT);
       return false;
@@ -122,9 +122,9 @@ export class CoupangScraper extends AbstractCoupang {
         '//span[contains(text(), "5번 잘못 입력")]',
       )
     ) {
-      await this.redisClient.lpush({
+      await this.sendMessage({
         action: false,
-        type: StatusType.SUSPENDED_ACCOUNT.toString(),
+        type: StatusType.SUSPENDED_ACCOUNT,
       });
       await this.dbLogger.writeLog(Log.COUPANG_SUSPENDED_ACCOUNT);
       return false;
@@ -148,9 +148,9 @@ export class CoupangScraper extends AbstractCoupang {
       let resendCount = 0;
       let tryCount = 0;
       for (let i = 0; i < MAX_RESEND_AUTH_NUMBER + 2; i++) {
-        let lpushTs = await this.redisClient.lpush({
+        await this.sendMessage({
           action: true,
-          type: OperationType.SMS.toString(),
+          type: OperationType.SMS,
           data: {
             tryCount: tryCount,
             resendCount: resendCount,
@@ -160,13 +160,13 @@ export class CoupangScraper extends AbstractCoupang {
 
         let success = false;
         for (let j = 0; j < MAX_RETRY_AUTH_COUNT; j++) {
-          const json = await this.redisClient.brpop(AUTH_TIMEOUT, lpushTs);
+          const json = await this.waitMessage(AUTH_TIMEOUT);
 
           console.log(`mfa json: ${JSON.stringify(json)}`);
           if (json === null) {
-            await this.redisClient.lpush({
+            await this.sendMessage({
               action: false,
-              type: StatusType.AUTH_TIMEOUT.toString(),
+              type: StatusType.AUTH_TIMEOUT,
             });
             await this.dbLogger.writeLog(Log.COUPANG_MFA_AUTH_TIMEOUT);
             return false;
@@ -174,7 +174,7 @@ export class CoupangScraper extends AbstractCoupang {
             await this.dbLogger.writeLog(Log.COUPANG_MFA_AUTH_NOTIFIED);
           }
 
-          if (json.type == OperationType.SMS.toString()) {
+          if (json.type == OperationType.SMS) {
             await this.scrapeWright.fill(
               '//input[@id="auth-mfa-code"]',
               json.data,
@@ -198,9 +198,9 @@ export class CoupangScraper extends AbstractCoupang {
                 );
                 return false;
               }
-              lpushTs = await this.redisClient.lpush({
+              await this.sendMessage({
                 action: true,
-                type: OperationType.INVALID_SMS.toString(),
+                type: OperationType.INVALID_SMS,
                 data: {
                   tryCount: tryCount,
                   resendCount: resendCount,
@@ -212,9 +212,9 @@ export class CoupangScraper extends AbstractCoupang {
                 tryCount.toString(),
               );
             } else {
-              await this.redisClient.lpush({
+              await this.sendMessage({
                 action: false,
-                type: StatusType.SMS_SUCCESS.toString(),
+                type: StatusType.SMS_SUCCESS,
               });
               await this.dbLogger.writeLog(Log.COUPANG_MFA_AUTH_APPROVED);
               success = true;
@@ -223,9 +223,9 @@ export class CoupangScraper extends AbstractCoupang {
           } else if (json.type == OperationType.RESEND_SMS.toString()) {
             resendCount++;
             if (resendCount > MAX_RESEND_AUTH_NUMBER) {
-              await this.redisClient.lpush({
+              await this.sendMessage({
                 action: false,
-                type: StatusType.MAX_RESEND_REACHED.toString(),
+                type: StatusType.MAX_RESEND_REACHED,
               });
               await this.dbLogger.writeLogWithInfo(
                 Log.COUPANG_MFA_AUTH_REACH_MAX_RESEND_CNT,
@@ -286,9 +286,9 @@ export class CoupangScraper extends AbstractCoupang {
       )
     ) {
       await this.dbLogger.writeLog(Log.COUPANG_FAIL_TO_GO_TO_SELLER_INFO_PAGE);
-      await this.redisClient.lpush({
+      await this.sendMessage({
         action: false,
-        type: StatusType.MISMATCH_BIZ_NO.toString(),
+        type: StatusType.MISMATCH_BIZ_NO,
       });
       await this.redisClient.set(this.redisClient.getCheckBizNoKey(), 'false');
       return false;
@@ -309,9 +309,9 @@ export class CoupangScraper extends AbstractCoupang {
       await this.dbLogger.writeLog(Log.COUPANG_BIZ_NO_MATCHED);
       return true;
     } else {
-      await this.redisClient.lpush({
+      await this.sendMessage({
         action: false,
-        type: StatusType.MISMATCH_BIZ_NO.toString(),
+        type: StatusType.MISMATCH_BIZ_NO,
       });
       await this.dbLogger.writeLogWithInfo(
         Log.COUPANG_BIZ_NO_NOT_MATCHED,
@@ -617,12 +617,12 @@ export class CoupangScraper extends AbstractCoupang {
   async verifyPhoneAuthNumberForConfirmation(
     curTimestamp: number,
   ): Promise<any> {
-    await this.redisClient.lpush({
+    await this.sendMessage({
       action: true,
-      type: OperationType.SMS.toString(),
+      type: OperationType.SMS,
       timestamp: Date.now(),
     });
-    const json = await this.redisClient.brpop(AUTH_TIMEOUT, curTimestamp);
+    const json = await this.waitMessage(AUTH_TIMEOUT);
 
     if (json === null) {
       await this.dbLogger.writeLog(Log.COUPANG_CONFIRMATION_SMS_AUTH_TIMEOUT);
@@ -698,11 +698,11 @@ export class CoupangScraper extends AbstractCoupang {
   async process(): Promise<any> {
     const data = {
       action: false,
-      type: StatusType.TIMEOUT.toString(),
+      type: StatusType.TIMEOUT,
     };
     setTimeout(
       async () => {
-        await this.redisClient.lpush(data);
+        await this.sendMessage(data);
       },
       10 * 60 * 1000,
     );
@@ -719,9 +719,9 @@ export class CoupangScraper extends AbstractCoupang {
         return false;
       }
 
-      await this.redisClient.lpush({
+      await this.sendMessage({
         action: false,
-        type: StatusType.COMPLETED.toString(),
+        type: StatusType.COMPLETED,
       });
 
       const success = await this.createSubAccount();
@@ -737,9 +737,9 @@ export class CoupangScraper extends AbstractCoupang {
 
       return success;
     } catch (e) {
-      await this.redisClient.lpush({
+      await this.sendMessage({
         action: false,
-        type: StatusType.TEMPORARY_ERROR.toString(),
+        type: StatusType.TEMPORARY_ERROR,
       });
       await this.dbLogger.writeLogWithInfo(
         Log.TEMPORARY_ERROR,

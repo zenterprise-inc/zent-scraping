@@ -291,15 +291,15 @@ export abstract class AbstractSmartStore extends AbstractSmartStoreLogin {
     );
 
     if (!isMatchedBizNo) {
-      await this.redisClient.lpush({
+      await this.sendMessage({
         action: false,
-        type: StatusType.MISMATCH_BIZ_NO.toString(),
+        type: StatusType.MISMATCH_BIZ_NO,
       });
       await this.dbLogger.writeLog(Log.NAVER_COMMERCE_BIZ_NO_NOT_MATCHED);
     } else {
-      await this.redisClient.lpush({
+      await this.sendMessage({
         action: false,
-        type: StatusType.COMPLETED.toString(),
+        type: StatusType.COMPLETED,
       });
     }
 
@@ -366,9 +366,9 @@ export abstract class AbstractSmartStore extends AbstractSmartStoreLogin {
       );
     } else {
       if (res.includes('매니저 초대 권한이 없습니다')) {
-        await this.redisClient.lpush({
+        await this.sendMessage({
           action: false,
-          type: StatusType.REQUIRE_MAIN_ACCOUNT.toString(),
+          type: StatusType.REQUIRE_MAIN_ACCOUNT,
         });
       }
       await this.dbLogger.writeLogWithInfo(

@@ -1,6 +1,7 @@
 import { createClient } from 'redis';
 import { OnlineMall } from './online_mall';
 import { Log } from './log';
+import { ScrapingMessage } from './model/scraping-message.type';
 
 console.log('ENV REDIS_URL:', process.env.REDIS_URL);
 const REDIS_URL = process.env.REDIS_URL || 'redis://3.35.20.76:6379';
@@ -101,7 +102,7 @@ export class RedisClient {
     await this.client.del(key);
   }
 
-  async lpush(json: any): Promise<number> {
+  async lpush(json: ScrapingMessage): Promise<number> {
     await this.ensureConnected();
     const curTimestamp = Date.now();
     json.timestamp = curTimestamp;
