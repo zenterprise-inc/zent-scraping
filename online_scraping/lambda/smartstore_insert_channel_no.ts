@@ -3,7 +3,7 @@ import { AbstractSmartStore } from './abstract_smartstore';
 
 export class SmartInsertChannelNo extends AbstractSmartStore {
   constructor(userId: string, password: string) {
-    super(OnlineMall.SmartStore, userId, password, '0000000000', false);
+    super(OnlineMall.SmartStore, userId, password, '0000000000', '', '', false);
   }
 
   async exploreChannels(): Promise<boolean> {

@@ -3,7 +3,7 @@ import { CoupangScraper } from './coupang_scraper';
 
 const USER_ID = process.env.USER_ID || '';
 const PASSWORD = process.env.PASSWORD || '';
-const BIZ_NO = process.env.BIZ_NO || '';
+const BSNO = process.env.BSNO || '';
 
 (async () => {
   // id- 6~20자의 영문 소문자, 숫자와 특수기호(_),(-),(.)만 입력해주세요.
@@ -11,7 +11,7 @@ const BIZ_NO = process.env.BIZ_NO || '';
     OnlineMall.Coupang,
     USER_ID,
     PASSWORD,
-    BIZ_NO,
+    BSNO,
   );
   await coupangScraper.run();
 })();

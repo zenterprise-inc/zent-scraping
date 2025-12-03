@@ -1,9 +1,10 @@
 import { io, Socket } from 'socket.io-client';
-import { SOCKET_EVENTS } from './events';
+import { WS_EVENTS } from './ws-events';
 import { OnlineMall } from '../online_mall';
 import { ScrapingMessage } from '../model/scraping-message.type';
 
 const WS_AUTH_TOKEN = process.env.WS_AUTH_TOKEN || '';
+const WS_SERVER = process.env.WS_SERVER || 'http://localhost:3000';
 
 interface WaitForEventResult<T = any> {
   ok: boolean;
@@ -14,20 +15,23 @@ interface WaitForEventResult<T = any> {
 
 export class SocketClient {
   private socket: Socket | null = null;
-  private onlineMall: OnlineMall;
   private readonly userId: string;
   private readonly bizNo: string;
+  private readonly onlineMallName: string;
 
   constructor(onlineMall: OnlineMall, userId: string, bizNo: string) {
-    this.onlineMall = onlineMall;
     this.userId = userId;
     this.bizNo = bizNo;
+
+    this.onlineMallName = Object.keys(OnlineMall).find(
+      key => OnlineMall[key as keyof typeof OnlineMall] === onlineMall
+    ) as keyof typeof OnlineMall;
   }
 
   connect() {
     if (this.socket) return this.socket;
 
-    this.socket = io('http://localhost:3000', {
+    this.socket = io(WS_SERVER, {
       transports: ['websocket'],
       extraHeaders: {
         Authorization: `Bearer ${WS_AUTH_TOKEN}`,
@@ -47,12 +51,17 @@ export class SocketClient {
 
   sendMessage(message: ScrapingMessage) {
     if (!this.socket) throw new Error('Socket not connected');
-    this.socket.emit(SOCKET_EVENTS.MESSAGE, message);
+    this.socket.emit(WS_EVENTS.SEND_MESSAGE, {
+      appCode: this.onlineMallName,
+      userId: this.userId,
+      bsno: this.bizNo,
+      message: message
+    });
   }
 
   onMessage(cb: (msg: any) => void) {
     if (!this.socket) throw new Error('Socket not connected');
-    this.socket.on(SOCKET_EVENTS.MESSAGE, cb);
+    this.socket.on(WS_EVENTS.MESSAGE, cb);
   }
 
   waitForEvent<T = any>(
@@ -75,20 +84,26 @@ export class SocketClient {
   }
 
   joinRoom() {
-    if (!this.socket) throw new Error('Socket not connected');
+    if (!this.socket) {
+      throw new Error('Socket not connected');
+    }
 
-    this.socket.emit(SOCKET_EVENTS.JOIN_ROOM, {
-      appCode: this.onlineMall.toString(),
+    console.log(`Joining room: ${this.onlineMallName} / ${this.userId} / ${this.bizNo}`);
+    this.socket.emit(WS_EVENTS.JOIN_ROOM, {
+      appCode: this.onlineMallName,
       userId: this.userId,
       bsno: this.bizNo,
     });
   }
 
   leaveRoom() {
-    if (!this.socket) throw new Error('Socket not connected');
+    if (!this.socket) { 
+      throw new Error('Socket not connected');
+    }
 
-    this.socket.emit(SOCKET_EVENTS.LEAVE_ROOM, {
-      appCode: this.onlineMall.toString(),
+    console.log(`Leaving room: ${this.onlineMallName} / ${this.userId} / ${this.bizNo}`);
+    this.socket.emit(WS_EVENTS.LEAVE_ROOM, {
+      appCode: this.onlineMallName,
       userId: this.userId,
       bsno: this.bizNo,
     });

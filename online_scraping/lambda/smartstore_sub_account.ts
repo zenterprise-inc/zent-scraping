@@ -22,7 +22,7 @@ export class SmartStoreSubAccount extends AbstractSmartStore {
     password: string,
     bizNo: string,
   ) {
-    super(onlineMall, userId, password, bizNo, false);
+    super(onlineMall, userId, password, bizNo, '', '', false);
   }
 
   async createSubAccount(): Promise<any> {

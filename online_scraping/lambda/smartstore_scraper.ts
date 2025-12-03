@@ -2,9 +2,13 @@ import { OnlineMall } from './online_mall';
 import { AbstractSmartStore } from './abstract_smartstore';
 import { Log } from './log';
 import { StatusType } from './redis';
+import { getEndYearMonth, getStartYearMonth } from './date_util';
 
 export class SmartStoreScraper extends AbstractSmartStore {
   private readonly isNaverAccount: boolean;
+  private readonly includeVat: boolean;
+  private readonly startYm: string;
+  private readonly endYm: string;
 
   constructor(
     isNaverAccount: boolean,
@@ -24,13 +28,13 @@ export class SmartStoreScraper extends AbstractSmartStore {
       bizNo,
       subAccountName,
       subAccountPhoneNumber,
-      includeVat,
-      startYm,
-      endYm,
       true,
     );
 
     this.isNaverAccount = isNaverAccount;
+    this.includeVat = includeVat || false;
+    this.startYm = startYm || getStartYearMonth();
+    this.endYm = endYm || getEndYearMonth();
   }
 
   async process(): Promise<any> {
@@ -59,7 +63,11 @@ export class SmartStoreScraper extends AbstractSmartStore {
         return false;
       }
 
-      const matchedBizNo = await this.checkBizNo();
+      const matchedBizNo = await this.checkBizNo(
+        this.startYm,
+        this.endYm,
+        this.includeVat,
+      );
 
       return matchedBizNo;
     } catch (e) {

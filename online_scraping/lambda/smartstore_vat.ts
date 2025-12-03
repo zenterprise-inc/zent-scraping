@@ -17,7 +17,7 @@ export class SmartStoreVat extends AbstractSmartStore {
     startYm?: string,
     endYm?: string,
   ) {
-    super(OnlineMall.SmartStore, userId, password, '0000000000', false);
+    super(OnlineMall.SmartStore, userId, password, '0000000000', '', '', false);
     this.startYm = startYm || getStartYearMonth();
     this.endYm = endYm || getEndYearMonth();
   }

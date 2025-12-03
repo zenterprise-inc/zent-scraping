@@ -7,6 +7,7 @@ import { promises as fs } from 'fs';
 import { Log } from './log';
 import { SocketClient } from './websocket/socket-client';
 import { ScrapingMessage } from './model/scraping-message.type';
+import { WS_EVENTS } from './websocket/ws-events';
 
 const isDocker = process.env.IS_DOCKER === 'true';
 
@@ -84,14 +85,14 @@ export abstract class AbstractScraper {
     await this.redisClient.lpush(message);
   }
 
-  async waitMessage(timoutMS: number): Promise<ScrapingMessage | null> {
+  async waitMessage(timeoutInSec: number): Promise<ScrapingMessage | null> {
     const result = await this.socketClient.waitForEvent<ScrapingMessage>(
-      'message',
-      timoutMS,
+      WS_EVENTS.MESSAGE,
+      timeoutInSec * 1000,
     );
     if (!result.ok) {
       if (result.timeout) {
-        console.log('응답 타임아웃!');
+        console.log('response timeout!');
       } else {
         console.log('기타 오류', result.error);
       }

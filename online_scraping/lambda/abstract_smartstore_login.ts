@@ -134,7 +134,7 @@ export abstract class AbstractSmartStoreLogin extends AbstractScraper {
             break;
           }
 
-          const json = await this.waitMessage(1000);
+          const json = await this.waitMessage(1);
           if (json != null && json.type === OperationType.APP_CONFIRM) {
             requireRetry = true;
             resendCount++;

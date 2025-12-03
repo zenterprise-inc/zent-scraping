@@ -2,7 +2,6 @@ import { OnlineMall } from './online_mall';
 import { Log } from './log';
 import { AbstractSmartStoreLogin } from './abstract_smartstore_login';
 import { StatusType } from './redis';
-import { getEndYearMonth, getStartYearMonth } from './date_util';
 
 export abstract class AbstractSmartStore extends AbstractSmartStoreLogin {
   protected onlineMall: OnlineMall;
@@ -11,12 +10,6 @@ export abstract class AbstractSmartStore extends AbstractSmartStoreLogin {
   protected bizNo: string;
   private readonly subAccountName: string;
   private readonly subAccountPhoneNumber: string;
-  private readonly includeVat: boolean;
-  private readonly startYm: string;
-  private readonly endYm: string;
-
-  private channelNo: string = '';
-  private channelName: string = '';
 
   protected isTerminated = false;
 
@@ -45,9 +38,6 @@ export abstract class AbstractSmartStore extends AbstractSmartStoreLogin {
     bizNo: string,
     subAccountName: string,
     subAccountPhoneNumber: string,
-    includeVat?: boolean,
-    startYm?: string,
-    endYm?: string,
     recoverable: boolean = true,
   ) {
     super(onlineMall, userId, password, bizNo, recoverable);
@@ -57,9 +47,6 @@ export abstract class AbstractSmartStore extends AbstractSmartStoreLogin {
     this.bizNo = bizNo;
     this.subAccountName = subAccountName;
     this.subAccountPhoneNumber = subAccountPhoneNumber;
-    this.includeVat = includeVat || false;
-    this.startYm = startYm || getStartYearMonth();
-    this.endYm = endYm || getEndYearMonth();
   }
 
   async init(): Promise<void> {
@@ -189,7 +176,11 @@ export abstract class AbstractSmartStore extends AbstractSmartStoreLogin {
     }
   }
 
-  async checkBizNo(): Promise<boolean> {
+  async checkBizNo(
+    startYm: string,
+    endYm: string,
+    includeVat: boolean,
+  ): Promise<boolean> {
     console.log('사업자번호를 체크합니다. 잠시 기다려주세요...');
     await this.scrapeWright.waitForTimeout(5000);
 
@@ -262,20 +253,17 @@ export abstract class AbstractSmartStore extends AbstractSmartStoreLogin {
           siteBizNo,
         );
 
-        this.channelNo = channelNo;
-        this.channelName = channelName;
-
         const success = await this.requestSubAccount();
         if (success) {
           isRequestedSubAccount = true;
         }
 
-        if (success && this.includeVat) {
+        if (success && includeVat) {
           const vatData = await this.scrapeVat(
-            this.startYm,
-            this.endYm,
-            this.channelNo,
-            this.channelName,
+            startYm,
+            endYm,
+            channelNo,
+            channelName,
           );
 
           if (vatData) {

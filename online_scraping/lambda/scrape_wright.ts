@@ -63,7 +63,7 @@ export class ScrapeWright {
   }
 
   async goto(url: string): Promise<void> {
-    await this.page.goto(url, { waitUntil: 'networkidle' });
+    await this.page.goto(url, { waitUntil: 'load' });
   }
 
   async reload(): Promise<void> {
@@ -79,7 +79,7 @@ export class ScrapeWright {
   }
 
   async waitForNavigation() {
-    await this.page.waitForNavigation({ waitUntil: 'networkidle' });
+    await this.page.waitForNavigation({ waitUntil: 'load' });
   }
 
   async fill(selector: string, text: string): Promise<void> {

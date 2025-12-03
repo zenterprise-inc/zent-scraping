@@ -16,7 +16,7 @@ export class SmartStoreSubAccountVat extends AbstractSmartStore {
     startYm?: string,
     endYm?: string,
   ) {
-    super(OnlineMall.SmartStore, userId, password, bizNo, false);
+    super(OnlineMall.SmartStore, userId, password, bizNo, '', '', false);
 
     this.channelNos = channelNos;
     this.startYm = startYm || getStartYearMonth();
