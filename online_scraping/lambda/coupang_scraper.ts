@@ -252,6 +252,22 @@ export class CoupangScraper extends AbstractCoupang {
       }
     }
 
+    if (
+      this.scrapeWright
+        .url()
+        .startsWith(
+          'https://wing.coupang.com/configuration/account/change-password',
+        )
+    ) {
+      console.log('비밀번호 변경이 필요합니다.');
+      await this.sendMessage({
+        action: false,
+        type: StatusType.REQUIRE_PASSWORD_CHANGE,
+      });
+      await this.dbLogger.writeLog(Log.COUPANG_REQUIRE_PASSWORD_CHANGE);
+      return false;
+    }
+
     if (this.scrapeWright.url().startsWith('https://wing.coupang.com')) {
       await this.dbLogger.writeLog(Log.COUPANG_REDIRECT_TO_WING);
       await this.redisClient.set(this.redisClient.getLoginKey(), 'true');

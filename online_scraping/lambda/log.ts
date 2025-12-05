@@ -69,6 +69,7 @@ export enum Log {
   COUPANG_MFA_AUTH_REACH_MAX_RESEND_CNT = 'coupang:mfa_auth_reach_max_resend_cnt',
   COUPANG_MFA_AUTH_REACH_MAX_TRY_CNT = 'coupang:mfa_auth_reach_max_try_cnt',
   COUPANG_MFA_AUTH_APPROVED = 'coupang:mfa_auth_approved',
+  COUPANG_REQUIRE_PASSWORD_CHANGE = 'coupang:require_password_change',
   COUPANG_REDIRECT_TO_WING = 'coupang:redirect_to_wing',
   COUPANG_FAIL_TO_REDIRECT_TO_WING = 'coupang:fail_to_redirect_to_wing',
   COUPANG_GO_TO_SELLER_INFO_PAGE = 'coupang:go_to_seller_info_page',
