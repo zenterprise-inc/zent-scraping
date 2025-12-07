@@ -6,7 +6,7 @@ let client: RedisClientType | null = null;
 async function connectRedis() {
     if (!client) {
         client = createClient({
-            url: 'rediss://scraping-redis-i41fut.serverless.apn2.cache.amazonaws.com:6379',
+            url: process.env.REDIS_URL,
             socket: {
                 tls: true,
             },
