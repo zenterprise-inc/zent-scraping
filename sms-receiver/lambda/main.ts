@@ -1,5 +1,4 @@
 import {createClient, RedisClientType} from 'redis';
-import axios from 'axios';
 
 let client: RedisClientType | null = null;
 
@@ -7,9 +6,9 @@ async function connectRedis() {
     if (!client) {
         client = createClient({
             url: process.env.REDIS_URL,
-            socket: {
-                tls: true,
-            },
+            // socket: {
+            //     tls: true,
+            // },
         });
         client.on('error', (err) => console.error('Redis error:', err));
         await client.connect();
@@ -24,6 +23,7 @@ function extractSixDigitCode(msg: string): string[] {
 
 export const handler = async (event: any) => {
     const body = JSON.parse(event.body);
+    console.log(event.body)
     const msg = body.key || '';
     const index = body.index || null;
 
@@ -59,24 +59,25 @@ export const handler = async (event: any) => {
     const KEY = `coupangSMS${index}`;
     const redis = await connectRedis();
     await redis.lPush(KEY, JSON.stringify(value));
+    await client?.quit();
+    client = null;
 
-    const webhookUrl =
-        'https://hooks.slack.com/services/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';
-
-    const payload = {
-        text: authCode,
-        username: 'WebhookBot',
-        icon_emoji: ':robot_face:',
-    };
-
-    try {
-        const response = await axios.post(webhookUrl, payload);
-        console.log('Webhook 전송 성공:', response.data);
-    } catch (error) {
-        console.error('Webhook 전송 실패:', error);
-    }
-
-
+    // const webhookUrl =
+    //     'https://hooks.slack.com/services/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';
+    //
+    // const payload = {
+    //     text: authCode,
+    //     username: 'WebhookBot',
+    //     icon_emoji: ':robot_face:',
+    // };
+    //
+    // try {
+    //     const response = await axios.post(webhookUrl, payload);
+    //     console.log('Webhook 전송 성공:', response.data);
+    // } catch (error) {
+    //     console.error('Webhook 전송 실패:', error);
+    // }
+    
     return {
         statusCode: 200,
         body: JSON.stringify(value),

@@ -11,6 +11,8 @@ export class SmsReceiverStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
 
+        const stageName = 'dev';
+
         const vpc = ec2.Vpc.fromLookup(this, 'vpc', {vpcId: 'vpc-01ba7e04e8d32d5c4'});
         const subnet = ec2.Subnet.fromSubnetId(this, 'subnet', 'subnet-057bef8492aac53c1');
         const securityGroup = ec2.SecurityGroup.fromSecurityGroupId(this, 'SG', 'sg-0ad8352321d6850f3');
@@ -18,12 +20,13 @@ export class SmsReceiverStack extends cdk.Stack {
         const REDIS_URL = ssm.StringParameter.fromStringParameterName(
             this,
             'SCRAPING_REDIS_URL',
-            `/cdk/bznav-care/dev/secrets/SCRAPING_REDIS_URL`
+            `/cdk/bznav-care/${stageName}/secrets/SCRAPING_REDIS_URL`
         );
 
         const architecture = os.arch() === 'arm64' ? lambda.Architecture.ARM_64 : lambda.Architecture.X86_64;
 
-        const lambdaFn = new lambda.Function(this, 'NodeLambdaFunction', {
+        const lambdaFn = new lambda.Function(this, 'SmsReceiverLambda', {
+            functionName: `SmsReceiverFunction-${stageName}`,
             runtime: lambda.Runtime.NODEJS_22_X,
             handler: 'main.handler',
             code: lambda.Code.fromAsset('lambda'),
@@ -49,7 +52,7 @@ export class SmsReceiverStack extends cdk.Stack {
             handler: lambdaFn,
             proxy: true,
             deployOptions: {
-                stageName: 'dev',
+                stageName: stageName,
             },
         });
 
