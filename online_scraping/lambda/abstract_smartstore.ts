@@ -74,21 +74,33 @@ export abstract class AbstractSmartStore extends AbstractSmartStoreLogin {
           .url()
           .startsWith('https://accounts.commerce.naver.com/switch-begin')
       ) {
+        await this.dbLogger.writeLog(
+          Log.NAVER_COMMERCE_NAVER_COMMERCE_MEMBER_CONVERSION,
+        );
+        return false;
       } else if (
         this.scrapeWright
           .url()
           .startsWith('https://accounts.commerce.naver.com/signup')
       ) {
+        await this.dbLogger.writeLog(Log.NAVER_COMMERCE_NAVER_COMMERCE_SIGNUP);
+        return false;
       } else if (
         await this.scrapeWright.exists(
           '//p[contains(text(), "허용하지 않은 지역에서 로그인")]',
         )
       ) {
+        await this.dbLogger.writeLog(
+          Log.NAVER_COMMERCE_LOGIN_FROM_UNAUTHORIZED_REGION,
+        );
+        return false;
       } else if (
         await this.scrapeWright.exists(
           '//p[contains(text(), "커머스 ID 회원 탈퇴한 아이디입니다")]',
         )
       ) {
+        await this.dbLogger.writeLog(Log.NAVER_COMMERCE_WITHDRAWN_MEMBER);
+        return false;
       }
       const buffer = await this.scrapeWright.screenshotFullPage();
 
