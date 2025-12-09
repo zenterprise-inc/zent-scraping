@@ -75,6 +75,10 @@ export class RedisClient {
     return `${this.getBznavKey()}:VatData`;
   }
 
+  getLogsKey(): string {
+    return `${this.getBznavKey()}:Logs`;
+  }
+
   getBznavKey(): string {
     return `BZNAV:${this.onlineMall.toString()}:${this.userId}:${this.bizNo}`;
   }
@@ -100,6 +104,11 @@ export class RedisClient {
 
   async del(key: string): Promise<void> {
     await this.client.del(key);
+  }
+
+  async lpushLog(json: any): Promise<void> {
+    await this.ensureConnected();
+    await this.client.lPush(this.getLogsKey(), JSON.stringify(json));
   }
 
   async lpush(json: ScrapingMessage): Promise<number> {

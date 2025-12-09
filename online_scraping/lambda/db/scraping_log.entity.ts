@@ -25,6 +25,8 @@ export class ScrapingLog {
   @Column({ type: 'mediumblob', nullable: true })
   image?: Buffer;
 
+  imgBase64?: string;
+
   @CreateDateColumn()
   createdAt!: Date;
 }

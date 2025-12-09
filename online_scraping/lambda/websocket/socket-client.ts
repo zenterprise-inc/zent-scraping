@@ -4,7 +4,7 @@ import { OnlineMall } from '../online_mall';
 import { ScrapingMessage } from '../model/scraping-message.type';
 
 const WS_AUTH_TOKEN = process.env.WS_AUTH_TOKEN || '';
-const WS_SERVER = process.env.WS_SERVER || 'http://localhost:3000';
+const CARE_WS_SERVER = process.env.CARE_WS_SERVER || 'http://localhost:3000';
 
 interface WaitForEventResult<T = any> {
   ok: boolean;
@@ -31,7 +31,7 @@ export class SocketClient {
   connect() {
     if (this.socket) return this.socket;
 
-    this.socket = io(WS_SERVER, {
+    this.socket = io(CARE_WS_SERVER, {
       transports: ['websocket'],
       extraHeaders: {
         Authorization: `Bearer ${WS_AUTH_TOKEN}`,
