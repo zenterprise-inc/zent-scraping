@@ -439,8 +439,6 @@ export class CoupangScraper extends AbstractCoupang {
     }
     console.log(`_ctk: ${_ctk}`);
 
-    return false;
-
     let tokenForMobile = '';
     for (let i = 0; i < MAX_RETRY_AUTH_COUNT; i++) {
       const curTimestamp = await this.sendAuthNumberToPhone(index);
