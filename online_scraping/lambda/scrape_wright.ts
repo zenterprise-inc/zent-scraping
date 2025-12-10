@@ -79,7 +79,7 @@ export class ScrapeWright {
   }
 
   async waitForNavigation() {
-    await this.page.waitForNavigation({ waitUntil: 'load' });
+    await this.page.waitForNavigation({ waitUntil: 'networkidle' });
   }
 
   async fill(selector: string, text: string): Promise<void> {

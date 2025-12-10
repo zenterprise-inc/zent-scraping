@@ -54,6 +54,18 @@ export class SmartstoreCdkStack extends cdk.Stack {
         `/cdk/bznav-care/${stageName}/secrets/SCRAPING_DATABASE`
     );
 
+    const CARE_WS_SERVER = ssm.StringParameter.fromStringParameterName(
+        this,
+        'CARE_WS_SERVER',
+        `/cdk/bznav-care/${stageName}/secrets/CARE_WS_SERVER`
+    );
+
+    const WS_AUTH_TOKEN = ssm.StringParameter.fromStringParameterName(
+        this,
+        'WS_AUTH_TOKEN',
+        `/cdk/bznav-care/${stageName}/secrets/WS_AUTH_TOKEN`
+    );
+
     const lambdaFn = new lambda.DockerImageFunction(this, 'SmartstoreLambda', {
       code: lambda.DockerImageCode.fromImageAsset(path.join(__dirname, '../../lambda'), {
         file: 'Dockerfile_smartstore',
@@ -72,6 +84,8 @@ export class SmartstoreCdkStack extends cdk.Stack {
         DB_USERNAME: DB_USERNAME.stringValue,
         DB_PASSWORD: DB_PASSWORD.stringValue,
         DATABASE: DATABASE.stringValue,
+        CARE_WS_SERVER: CARE_WS_SERVER.stringValue,
+        WS_AUTH_TOKEN: WS_AUTH_TOKEN.stringValue,
       },
       timeout : cdk.Duration.minutes(12),
       memorySize: 2048,
@@ -84,20 +98,10 @@ export class SmartstoreCdkStack extends cdk.Stack {
         DB_HOST.parameterArn,
         DB_USERNAME.parameterArn,
         DB_PASSWORD.parameterArn,
-        DATABASE.parameterArn
+        DATABASE.parameterArn,
+        CARE_WS_SERVER.parameterArn,
+        WS_AUTH_TOKEN.parameterArn
       ],
     }));
-
-    const api = new apigateway.LambdaRestApi(this, 'SmartstoreApi', {
-      handler: lambdaFn,
-      proxy: true,
-      deployOptions: {
-        stageName: stageName,
-      },
-    });
-
-    new cdk.CfnOutput(this, 'ApiUrl', {
-      value: api.url,
-    });
   }
 }
