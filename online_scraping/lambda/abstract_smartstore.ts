@@ -74,6 +74,10 @@ export abstract class AbstractSmartStore extends AbstractSmartStoreLogin {
           .url()
           .startsWith('https://accounts.commerce.naver.com/switch-begin')
       ) {
+        await this.sendMessage({ 
+          action: false,   
+          type: StatusType.REQUIRE_NAVER_COMMERCE_MEMBER_CONVERSION,
+        });
         await this.dbLogger.writeLog(
           Log.NAVER_COMMERCE_NAVER_COMMERCE_MEMBER_CONVERSION,
         );
@@ -83,6 +87,10 @@ export abstract class AbstractSmartStore extends AbstractSmartStoreLogin {
           .url()
           .startsWith('https://accounts.commerce.naver.com/signup')
       ) {
+        await this.sendMessage({ 
+          action: false,   
+          type: StatusType.REQUIRE_NAVER_COMMERCE_SIGNUP,
+        });
         await this.dbLogger.writeLog(Log.NAVER_COMMERCE_NAVER_COMMERCE_SIGNUP);
         return false;
       } else if (
@@ -90,6 +98,10 @@ export abstract class AbstractSmartStore extends AbstractSmartStoreLogin {
           '//p[contains(text(), "허용하지 않은 지역에서 로그인")]',
         )
       ) {
+        await this.sendMessage({ 
+          action: false,   
+          type: StatusType.LOGIN_FROM_UNAUTHORIZED_REGION,
+        });
         await this.dbLogger.writeLog(
           Log.NAVER_COMMERCE_LOGIN_FROM_UNAUTHORIZED_REGION,
         );
@@ -99,6 +111,10 @@ export abstract class AbstractSmartStore extends AbstractSmartStoreLogin {
           '//p[contains(text(), "커머스 ID 회원 탈퇴한 아이디입니다")]',
         )
       ) {
+        await this.sendMessage({ 
+          action: false,   
+          type: StatusType.WITHDRAWN_MEMBER,
+        });
         await this.dbLogger.writeLog(Log.NAVER_COMMERCE_WITHDRAWN_MEMBER);
         return false;
       }
