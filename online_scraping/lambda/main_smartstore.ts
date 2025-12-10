@@ -7,17 +7,17 @@ export const handler = async (event: any) => {
     if (!event.body) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ message: 'Request body is required' }),
+        body: { message: 'Request body is required' },
       };
     }
 
-    const body = JSON.parse(event.body);
+    const body = event.body;
     const mall = body.mall || '';
 
     if (mall === '') {
       return {
         statusCode: 400,
-        body: JSON.stringify({ message: 'mall is required' }),
+        body: { message: 'mall is required' },
       };
     }
 
@@ -25,16 +25,18 @@ export const handler = async (event: any) => {
     if (onlineMall === undefined) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ message: 'mall is undefined' }),
+        body: { message: 'mall is undefined' },
       };
     }
+
+    const isNaverAccount = body.isNaverAccount || false;
 
     const userId = body.userId || '';
 
     if (userId === '') {
       return {
         statusCode: 400,
-        body: JSON.stringify({ message: 'userId is required' }),
+        body: { message: 'userId is required' },
       };
     }
 
@@ -43,7 +45,7 @@ export const handler = async (event: any) => {
     if (password === '') {
       return {
         statusCode: 400,
-        body: JSON.stringify({ message: 'password is required' }),
+        body: { message: 'password is required' },
       };
     }
 
@@ -52,7 +54,7 @@ export const handler = async (event: any) => {
     if (bizNo === '') {
       return {
         statusCode: 400,
-        body: JSON.stringify({ message: 'bizNo is required' }),
+        body: { message: 'bizNo is required' },
       };
     }
 
@@ -60,7 +62,7 @@ export const handler = async (event: any) => {
     if (subAccountName === '') {
       return {
         statusCode: 400,
-        body: JSON.stringify({ message: 'subAccountName is required' }),
+        body: { message: 'subAccountName is required' },
       };
     }
 
@@ -68,15 +70,16 @@ export const handler = async (event: any) => {
     if (subAccountPhoneNumber === '') {
       return {
         statusCode: 400,
-        body: JSON.stringify({ message: 'subAccountPhoneNumber is required' }),
+        body: { message: 'subAccountPhoneNumber is required' },
       };
     }
 
     const includeVat = body.includeVat || false;
     const startYm = body.startYm || '';
-    const endYm = body.endYm || '';
+    const endYm = body.endYm || '';``
 
     const smartStoreScraper = new SmartStoreScraper(
+      isNaverAccount,
       userId,
       password,
       bizNo,
@@ -91,15 +94,15 @@ export const handler = async (event: any) => {
     console.error(error);
     return {
       statusCode: 500,
-      body: JSON.stringify({
+      body: {
         message: error?.message || 'Internal server error',
-      }),
+      },
     };
   }
 
   return {
     statusCode: 200,
-    body: JSON.stringify({ message: `executed` }),
+    body: { message: `executed` },
   };
 };
 

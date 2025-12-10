@@ -23,7 +23,7 @@ export abstract class AbstractCoupang extends AbstractScraper {
     password: string,
     bizNo: string,
   ) {
-    super(onlineMall, userId, bizNo);
+    super(onlineMall, userId, bizNo, true);
     this.userId = userId;
     this.password = password;
   }

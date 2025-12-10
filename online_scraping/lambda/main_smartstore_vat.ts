@@ -10,7 +10,7 @@ export const handler = async (event: any) => {
         if (userId === '') {
             return {
                 statusCode: 400,
-                body: JSON.stringify({message: 'userId is required'}),
+                body: {message: 'userId is required'},
             };
         }
 
@@ -18,7 +18,7 @@ export const handler = async (event: any) => {
         if (password === '') {
             return {
                 statusCode: 400,
-                body: JSON.stringify({message: 'password is required'}),
+                body: {message: 'password is required'},
             };
         }
 
@@ -28,7 +28,7 @@ export const handler = async (event: any) => {
         console.error(error);
         return {
             statusCode: 500,
-            body: JSON.stringify({message: error?.message || 'Internal server error'}),
+            body: {message: error?.message || 'Internal server error'},
         };
     }
 

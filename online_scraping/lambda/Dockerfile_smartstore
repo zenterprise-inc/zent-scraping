@@ -23,6 +23,8 @@ COPY *.ts ./
 COPY db/*.ts ./db/
 COPY gmail/*.ts ./gmail/
 COPY gmail/*.json ./gmail/
+COPY model/*.ts ./model/
+COPY websocket/*.ts ./websocket/
 
 RUN npm ci
 RUN npm run build
