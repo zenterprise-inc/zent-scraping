@@ -206,7 +206,7 @@ export abstract class AbstractSmartStoreLogin extends AbstractScraper {
       const simpleLoginSelector =
         '//button[@type="button" and contains(@class, "Login_btn_login")]';
       let simpleLoginTry = 0;
-      while (simpleLoginTry < 5) {
+      while (simpleLoginTry < 3) {
         if (
           !this.scrapeWright
             .url()
@@ -263,6 +263,16 @@ export abstract class AbstractSmartStoreLogin extends AbstractScraper {
 
           const popupHtml = await popupPage.content();
           console.log('Popup HTML Source:', popupHtml);
+          if (popupHtml.includes('개인정보 제 3자 제공 동의')) {
+            await this.sendMessage({
+              action: false,
+              type: StatusType.REQUIRE_NAVER_PRIVACY_POLICY_CONSENT,
+            });
+            await this.dbLogger.writeLog(
+              Log.NAVER_COMMERCE_NAVER_PRIVACY_POLICY_CONSENT,
+            );
+            return false;
+          }
 
           const popupUrl = popupPage.url();
           console.log('Popup URL:', popupUrl);
@@ -341,7 +351,11 @@ export abstract class AbstractSmartStoreLogin extends AbstractScraper {
       }
     }
 
-    await this.dbLogger.writeLog(Log.NAVER_FAIL_RECEIPT_TEST);
+    await this.sendMessage({
+      action: false,
+      type: StatusType.CONSECUTIVE_CAPTCHA_FAILURES,
+    });
+    await this.dbLogger.writeLog(Log.NAVER_COMMERCE_CONSECUTIVE_CAPTCHA_FAILURES);
     return false;
   }
 

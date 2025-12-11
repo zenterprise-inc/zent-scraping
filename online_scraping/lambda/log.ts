@@ -46,7 +46,6 @@ export enum Log {
   NAVER_COMMERCE_FAIL_TO_GET_SELLER_INFO = 'naver_commerce:fail_to_get_seller_info',
   NAVER_COMMERCE_BIZ_NO_COUNT = 'naver_commerce:biz_no_count',
   NAVER_COMMERCE_BIZ_NO_MATCHED = 'naver_commerce:biz_no_matched',
-  NAVER_COMMERCE_NO_INVITATION_AUTHORITY = 'naver_commerce:no_invitation_authority',
   NAVER_COMMERCE_NAVER_COMMERCE_MEMBER_CONVERSION = 'naver_commerce:naver_commerce_member_conversion',
   NAVER_COMMERCE_NAVER_COMMERCE_SIGNUP = 'naver_commerce:naver_commerce_signup',
   NAVER_COMMERCE_NO_ACCOUNT_NUMBER = 'naver_commerce:no_account_number',

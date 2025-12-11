@@ -74,8 +74,8 @@ export abstract class AbstractSmartStore extends AbstractSmartStoreLogin {
           .url()
           .startsWith('https://accounts.commerce.naver.com/switch-begin')
       ) {
-        await this.sendMessage({ 
-          action: false,   
+        await this.sendMessage({
+          action: false,
           type: StatusType.REQUIRE_NAVER_COMMERCE_MEMBER_CONVERSION,
         });
         await this.dbLogger.writeLog(
@@ -87,8 +87,8 @@ export abstract class AbstractSmartStore extends AbstractSmartStoreLogin {
           .url()
           .startsWith('https://accounts.commerce.naver.com/signup')
       ) {
-        await this.sendMessage({ 
-          action: false,   
+        await this.sendMessage({
+          action: false,
           type: StatusType.REQUIRE_NAVER_COMMERCE_SIGNUP,
         });
         await this.dbLogger.writeLog(Log.NAVER_COMMERCE_NAVER_COMMERCE_SIGNUP);
@@ -98,8 +98,8 @@ export abstract class AbstractSmartStore extends AbstractSmartStoreLogin {
           '//p[contains(text(), "허용하지 않은 지역에서 로그인")]',
         )
       ) {
-        await this.sendMessage({ 
-          action: false,   
+        await this.sendMessage({
+          action: false,
           type: StatusType.LOGIN_FROM_UNAUTHORIZED_REGION,
         });
         await this.dbLogger.writeLog(
@@ -111,8 +111,8 @@ export abstract class AbstractSmartStore extends AbstractSmartStoreLogin {
           '//p[contains(text(), "커머스 ID 회원 탈퇴한 아이디입니다")]',
         )
       ) {
-        await this.sendMessage({ 
-          action: false,   
+        await this.sendMessage({
+          action: false,
           type: StatusType.WITHDRAWN_MEMBER,
         });
         await this.dbLogger.writeLog(Log.NAVER_COMMERCE_WITHDRAWN_MEMBER);
@@ -144,6 +144,11 @@ export abstract class AbstractSmartStore extends AbstractSmartStoreLogin {
 
     if (!res || !res.represent || !res.represent.identity) {
       if (res?.represent?.identity === '') {
+        await this.sendMessage({
+          action: false,
+          type: StatusType.NO_BSNO,
+        });
+        await this.dbLogger.writeLog(Log.NAVER_COMMERCE_NO_BSNO);
       } else {
         await this.dbLogger.writeLogWithInfo(
           Log.NAVER_COMMERCE_FAIL_TO_GET_SELLER_INFO,
@@ -225,6 +230,11 @@ export abstract class AbstractSmartStore extends AbstractSmartStoreLogin {
 
     if (!channelRes || !Array.isArray(channelRes) || channelRes.length === 0) {
       if (channelRes?.code === 'NOT_FOUND') {
+        await this.sendMessage({
+          action: false,
+          type: StatusType.NO_ACCOUNT_NUMBER,
+        });
+        await this.dbLogger.writeLog(Log.NAVER_COMMERCE_NO_ACCOUNT_NUMBER);
       } else {
         await this.dbLogger.writeLogWithInfo(
           Log.NAVER_COMMERCE_FAIL_TO_GET_CHANNELS,
@@ -367,8 +377,6 @@ export abstract class AbstractSmartStore extends AbstractSmartStoreLogin {
     // {"code": "INTERNAL_SERVER_ERROR", "message": "정상 또는 이용정지 상태인 스토어에 대해서만 초대발송이 가능합니다.", "timestamp": "2025-07-10T13:44:49.727+0000", "needAlert": true}
     console.log(`Sub account request response: --${res}--`);
     await this.dbLogger.writeLog(Log.NAVER_COMMERCE_REQUEST_SUB_ACCOUNT);
-    if (res && res.code) {
-    }
 
     const success = res === '';
     await this.redisClient.set(
@@ -386,6 +394,12 @@ export abstract class AbstractSmartStore extends AbstractSmartStoreLogin {
           action: false,
           type: StatusType.REQUIRE_MAIN_ACCOUNT,
         });
+      } else if (res.includes('정상 또는 이용정지 상태인 스토어')) {
+        await this.sendMessage({
+          action: false,
+          type: StatusType.NOT_NORMAL_STORE,
+        });
+        await this.dbLogger.writeLog(Log.NAVER_COMMERCE_NOT_NORMAL_STORE);
       }
       await this.dbLogger.writeLogWithInfo(
         Log.NAVER_COMMERCE_FAIL_TO_INVITE_SUB_ACCOUNT,
