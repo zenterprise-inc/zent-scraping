@@ -1,32 +1,38 @@
 {
-	"dependencies": {
-		"@aws-sdk/client-kms": "^3.840.0",
-		"@aws-sdk/client-sqs": "^3.821.0",
-		"@types/node": "^22.15.17",
-		"base64url": "^3.0.1",
-		"form-data": "^4.0.2",
-		"google-auth-library": "^9.15.1",
-		"googleapis": "^149.0.0",
-		"mysql2": "^3.14.1",
-		"node-fetch": "2",
-		"openai": "^4.103.0",
-		"playwright": "^1.52.0",
-		"prompts": "^2.4.2",
-		"redis": "^4.0.0",
-		"reflect-metadata": "^0.2.2",
-		"socket.io-client": "^4.8.1",
-		"ts-node": "^10.9.2",
-		"typeorm": "^0.3.24",
-		"typeorm-naming-strategies": "^4.1.0"
-	},
-	"devDependencies": {
-		"@types/node-fetch": "^2.6.12",
-		"@types/prompts": "^2.4.9",
-		"open": "^10.1.2",
-		"prettier": "^3.5.3",
-		"typescript": "^5.8.3"
-	},
-	"scripts": {
-		"build": "tsc"
-	}
+  "dependencies": {
+    "@aws-sdk/client-kms": "^3.840.0",
+    "@aws-sdk/client-sqs": "^3.821.0",
+    "@types/node": "^22.15.17",
+    "base64url": "^3.0.1",
+    "cheerio": "^1.0.0",
+    "form-data": "^4.0.2",
+    "google-auth-library": "^9.15.1",
+    "googleapis": "^149.0.0",
+    "got-scraping": "^3.2.15",
+    "http2-wrapper": "^2.2.1",
+    "mysql2": "^3.14.1",
+    "node-fetch": "2",
+    "openai": "^4.103.0",
+    "playwright": "^1.52.0",
+    "prompts": "^2.4.2",
+    "redis": "^4.0.0",
+    "reflect-metadata": "^0.2.2",
+    "socket.io-client": "^4.8.1",
+    "tough-cookie": "^5.1.2",
+    "ts-node": "^10.9.2",
+    "typeorm": "^0.3.24",
+    "typeorm-naming-strategies": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/cheerio": "^0.22.35",
+    "@types/node-fetch": "^2.6.12",
+    "@types/prompts": "^2.4.9",
+    "@types/tough-cookie": "^4.0.5",
+    "open": "^10.1.2",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.3"
+  },
+  "scripts": {
+    "build": "tsc"
+  }
 }
