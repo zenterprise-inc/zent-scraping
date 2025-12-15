@@ -424,24 +424,41 @@ export class CoupangGotScraper extends AbstractGotCoupang {
         throwHttpErrors: false,
       });
 
-      const checkPasswordConfirmResponse = await client(
+      // Cookie 내용 출력
+      // const cookies = this.cookieJar.getCookiesSync(checkPasswordFormActionUrl);
+      // console.log(
+      //   'Cookies before checkPasswordConfirm:',
+      //   JSON.stringify(
+      //     cookies.map((cookie) => ({
+      //       key: cookie.key,
+      //       value: cookie.value,
+      //       domain: cookie.domain,
+      //       path: cookie.path,
+      //     })),
+      //     null,
+      //     2,
+      //   ),
+      // );
+
+      const checkPasswordConfirmResponse = await gotScraping(
         checkPasswordFormActionUrl,
         {
           cookieJar: this.cookieJar,
           method: 'POST',
           headers: {
             ...this.FORM_DATA_POST_HEADER,
-            Accept:
+            accept:
               'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-            'Accept-Encoding': 'gzip, deflate, br, zstd',
-            'Accept-Language': 'ko-KR,ko;q=0.9',
-            Origin: 'https://wing.coupang.com',
-            Referer:
-              'https://wing.coupang.com/tenants/wing-account/vendor/confirm-password?to=/tenants/wing-account/vendor/basicinfo&isTARegion=false&currentPlatform=DESKTOP&currentLocale=ko&currentMenuCode=VENDOR_INFORMATION',
+            'accept-encoding': 'gzip, deflate, br, zstd',
+            'accept-language': 'ko',
+            origin: 'https://wing.coupang.com',
+            referer:
+              'https://wing.coupang.com/tenants/wing-account/vendor/confirm-password?to=/tenants/wing-account/vendor/account&isTARegion=false&currentPlatform=DESKTOP&currentLocale=ko&currentMenuCode=VENDOR_ACCOUNT',
+            priority: 'u=0, i',
             'sec-ch-ua':
-              '"Google Chrome";v="143", "Chromium";v="143", "Not A(Brand";v="24"',
+              '"Chromium";v="142", "Google Chrome";v="142", "Not_A Brand";v="99"',
             'sec-ch-ua-mobile': '?0',
-            'sec-ch-ua-platform': '"Windows"',
+            'sec-ch-ua-platform': '"macOS"',
             'sec-fetch-dest': 'document',
             'sec-fetch-mode': 'navigate',
             'sec-fetch-site': 'same-origin',
@@ -450,16 +467,19 @@ export class CoupangGotScraper extends AbstractGotCoupang {
             'cache-control': 'max-age=0',
           },
           form: {
-            to: '/tenants/wing-account/vendor/basicinfo',
+            to: '/tenants/wing-account/vendor/account',
             password: this.password,
           },
           followRedirect: true,
+          // https: {
+          //   rejectUnauthorized: false,
+          //   signatureAlgorithms:
+          //     'ecdsa_secp256r1_sha256:rsa_pss_rsae_sha256:rsa_pkcs1_sha256:ecdsa_secp384r1_sha384:rsa_pss_rsae_sha384:rsa_pkcs1_sha384:rsa_pss_rsae_sha512:rsa_pkcs1_sha512',
+          //   ciphers:
+          //     'TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-RSA-AES128-SHA:ECDHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA:AES256-SHA',
           https: {
-            rejectUnauthorized: false,
-            signatureAlgorithms:
-              'ecdsa_secp256r1_sha256:rsa_pss_rsae_sha256:rsa_pkcs1_sha256:ecdsa_secp384r1_sha384:rsa_pss_rsae_sha384:rsa_pkcs1_sha384:rsa_pss_rsae_sha512:rsa_pkcs1_sha512',
-            ciphers:
-              'TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-RSA-AES128-SHA:ECDHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA:AES256-SHA',
+            minVersion: 'TLSv1.2',
+            maxVersion: 'TLSv1.3',
           },
         },
       );
@@ -606,7 +626,7 @@ export class CoupangGotScraper extends AbstractGotCoupang {
 
     await this.dbLogger.writeLog(Log.COUPANG_GO_TO_VENDOR_ACCOUNT_PAGE);
     const vendorAccountPageUrl =
-      'https://wing.coupang.com/tenants/wing-account/vendor/manager/create';
+      'https://wing.coupang.com/tenants/wing-account/vendor/account/create';
     const vendorAccountPageResponse = await gotScraping(vendorAccountPageUrl, {
       cookieJar: this.cookieJar,
       headers: {

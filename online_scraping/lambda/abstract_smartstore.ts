@@ -366,19 +366,24 @@ export abstract class AbstractSmartStore extends AbstractSmartStoreLogin {
       data: this.SUB_ACCOUNT_PAYLOAD,
     };
 
-    const res = await this.scrapeWright.postWithTextRes(
+    const res = await this.scrapeWright.post(
       this.SUB_ACCOUNT_API,
       options,
     );
 
+    // success : {"messageBodyMap":{}}
     // {"code":"BAD_REQUEST","message":"이름 항목에 허용 되지 않는 문자가 있습니다.","timestamp":"2025-06-06T12:28:16.045+0000","needAlert":true}
     // {"code":"BAD_REQUEST","message":"매니저 초대 권한이 없습니다.","timestamp":"2025-06-02T05:22:56.771+0000","needAlert":true}
     // {"code":"INTERNAL_SERVER_ERROR","message":"정상상태인 스토어에 대해서만 초대발송이 가능합니다.","timestamp":"2025-06-02T05:24:29.480+0000","needAlert":true}
     // {"code": "INTERNAL_SERVER_ERROR", "message": "정상 또는 이용정지 상태인 스토어에 대해서만 초대발송이 가능합니다.", "timestamp": "2025-07-10T13:44:49.727+0000", "needAlert": true}
-    console.log(`Sub account request response: --${res}--`);
+    console.log(`Sub account request response: --${JSON.stringify(res)}--`);
     await this.dbLogger.writeLog(Log.NAVER_COMMERCE_REQUEST_SUB_ACCOUNT);
 
-    const success = res === '';
+    const success =
+      res &&
+      typeof res === 'object' &&
+      res.messageBodyMap &&
+      Object.keys(res.messageBodyMap).length === 0 ;
     await this.redisClient.set(
       this.redisClient.getSubAccountKey(),
       success.toString(),
@@ -389,12 +394,13 @@ export abstract class AbstractSmartStore extends AbstractSmartStoreLogin {
         Log.NAVER_COMMERCE_SUCCEED_TO_INVITE_SUB_ACCOUNT,
       );
     } else {
-      if (res.includes('매니저 초대 권한이 없습니다')) {
+      const resMessage = JSON.stringify(res);
+      if (resMessage.includes('매니저 초대 권한이 없습니다')) {
         await this.sendMessage({
           action: false,
           type: StatusType.REQUIRE_MAIN_ACCOUNT,
         });
-      } else if (res.includes('정상 또는 이용정지 상태인 스토어')) {
+      } else if (resMessage.includes('정상 또는 이용정지 상태인 스토어')) {
         await this.sendMessage({
           action: false,
           type: StatusType.NOT_NORMAL_STORE,
@@ -403,7 +409,7 @@ export abstract class AbstractSmartStore extends AbstractSmartStoreLogin {
       }
       await this.dbLogger.writeLogWithInfo(
         Log.NAVER_COMMERCE_FAIL_TO_INVITE_SUB_ACCOUNT,
-        res,
+        resMessage,
       );
     }
 

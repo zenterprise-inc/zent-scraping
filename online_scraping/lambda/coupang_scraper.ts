@@ -416,7 +416,7 @@ export class CoupangScraper extends AbstractCoupang {
 
     await this.dbLogger.writeLog(Log.COUPANG_GO_TO_VENDOR_ACCOUNT_PAGE);
     await this.scrapeWright.goto(
-      'https://wing.coupang.com/tenants/wing-account/vendor/manager/create',
+      'https://wing.coupang.com/tenants/wing-account/vendor/account/create',
     );
     await this.scrapeWright.waitForTimeout(2000);
     await this.scrapeWright.fill('//input[@id="password"]', this.password);
