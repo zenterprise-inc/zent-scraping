@@ -19,7 +19,6 @@ export class ScrapeWright {
   private browser!: Browser;
   private context!: BrowserContext;
   private page!: Page;
-  private requestLoggingEnabled: boolean = false;
   private requestListener?: (request: any) => void;
   private responseListener?: (response: any) => void;
 
@@ -27,6 +26,7 @@ export class ScrapeWright {
 
   async init(recordVideo: boolean = false): Promise<void> {
     this.browser = await chromium.launch({
+      channel: 'chrome',
       headless: headless,
       devtools: false,
       args: args,
@@ -60,11 +60,6 @@ export class ScrapeWright {
   }
 
   enableRequestLogging(filterMethod?: 'GET' | 'POST' | 'PUT' | 'DELETE'): void {
-    if (this.requestLoggingEnabled) {
-      return; // 이미 활성화되어 있으면 무시
-    }
-
-    this.requestLoggingEnabled = true;
     this.requestListener = (request: any) => {
       const method = request.method();
       const url = request.url();
@@ -80,7 +75,7 @@ export class ScrapeWright {
           for (const [key, value] of Object.entries(headers)) {
             console.log(`  ${key}: ${value}`);
           }
-          
+
           // POST 요청인 경우 body도 출력
           if (method === 'POST') {
             const postData = request.postData();
@@ -103,6 +98,12 @@ export class ScrapeWright {
         if (!filterMethod || method === filterMethod) {
           console.log(`[${method}] Response from: ${url}`);
           console.log(`Status Code: ${status}`);
+          const headers = response.headers();
+          console.log('Response Headers:');
+          // 각 헤더를 개별적으로 출력하여 잘림 방지
+          for (const [key, value] of Object.entries(headers)) {
+            console.log(`  ${key}: ${value}`);
+          }
         }
       }
     };
@@ -112,17 +113,11 @@ export class ScrapeWright {
   }
 
   disableRequestLogging(): void {
-    if (!this.requestLoggingEnabled) {
-      return;
-    }
-
-    this.requestLoggingEnabled = false;
-    
     if (this.requestListener) {
       this.page.off('request', this.requestListener);
       this.requestListener = undefined;
     }
-    
+
     if (this.responseListener) {
       this.page.off('response', this.responseListener);
       this.responseListener = undefined;

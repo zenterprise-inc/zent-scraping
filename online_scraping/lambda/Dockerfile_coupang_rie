@@ -9,12 +9,25 @@ RUN apt-get update && apt-get install -y \
     unzip \
     libcurl4-openssl-dev \
     autoconf \
-    libtool
+    libtool \
+    ca-certificates \
+    curl \
+    gnupg \
+    && rm -rf /var/lib/apt/lists/*
+
+# --- Install Google Chrome Stable ---
+RUN install -m 0755 -d /etc/apt/keyrings && \
+curl -fsSL https://dl.google.com/linux/linux_signing_key.pub \
+  | gpg --dearmor -o /etc/apt/keyrings/google-linux-signing-key.gpg && \
+echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/google-linux-signing-key.gpg] http://dl.google.com/linux/chrome/deb/ stable main" \
+  > /etc/apt/sources.list.d/google-chrome.list && \
+apt-get update && apt-get install -y google-chrome-stable && \
+rm -rf /var/lib/apt/lists/*
 
 ENV NPM_CONFIG_CACHE=/tmp/.npm
 ENV PLAYWRIGHT_BROWSERS_PATH=0
 
-# Install Lambda Runtime Interface Emulator (RIE) for local testing
+# Install Lambda Runtime Interfac{"statusCode":500,"body":{"message":"getaddrinfo ENOTFOUND host.docker.internal"}}e Emulator (RIE) for local testing
 RUN mkdir -p /opt
 RUN curl -Lo /opt/aws-lambda-rie https://github.com/aws/aws-lambda-runtime-interface-emulator/releases/latest/download/aws-lambda-rie && \
     chmod +x /opt/aws-lambda-rie
@@ -23,7 +36,11 @@ RUN npm install aws-lambda-ric -g
 
 ENV IS_DOCKER=true
 # Default DB_HOST for connecting to host MySQL (can be overridden with -e DB_HOST=...)
-ENV DB_HOST=host.docker.internal
+# On Linux, use 172.17.0.1 (Docker bridge gateway) or run with --add-host=host.docker.internal:host-gateway
+# On Mac/Windows, host.docker.internal should work, but can override if needed
+ENV DB_HOST=172.17.0.1
+ENV DB_PORT=3307
+ENV DATABASE=bznav_care_zent
 
 COPY *.json ./
 COPY *.ts ./
@@ -36,7 +53,8 @@ COPY websocket/*.ts ./websocket/
 RUN npm ci
 RUN npm run build
 
-RUN npx playwright install chromium
+RUN npx playwright install --with-deps
+#RUN npx playwright install chromium
 
 RUN cp *.json dist/
 
