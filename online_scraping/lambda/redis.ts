@@ -111,12 +111,9 @@ export class RedisClient {
     await this.client.lPush(this.getLogsKey(), JSON.stringify(json));
   }
 
-  async lpush(json: ScrapingMessage): Promise<number> {
+  async lpush(json: ScrapingMessage): Promise<void> {
     await this.ensureConnected();
-    const curTimestamp = Date.now();
-    json.timestamp = curTimestamp;
     await this.client.lPush(this.getBznavKey(), JSON.stringify(json));
-    return curTimestamp;
   }
 
   async brpopJson(key: string, timeout: number): Promise<any> {

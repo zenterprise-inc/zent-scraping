@@ -36,6 +36,8 @@ export abstract class AbstractGotScraper {
   }
 
   async sendMessage(message: ScrapingMessage): Promise<void> {
+    const curTimestamp = Date.now();
+    message.timestamp = curTimestamp;
     this.socketClient.sendMessage(message);
     await this.redisClient.lpush(message);
   }
