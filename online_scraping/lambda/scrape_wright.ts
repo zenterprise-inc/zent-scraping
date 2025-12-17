@@ -19,6 +19,9 @@ export class ScrapeWright {
   private browser!: Browser;
   private context!: BrowserContext;
   private page!: Page;
+  private requestLoggingEnabled: boolean = false;
+  private requestListener?: (request: any) => void;
+  private responseListener?: (response: any) => void;
 
   constructor() {}
 
@@ -40,7 +43,7 @@ export class ScrapeWright {
       'sec-ch-ua':
         '"Chromium";v="142", "Google Chrome";v="142", "Not_A Brand";v="99"',
     };
-    
+
     if (recordVideo) {
       const videoDir = isDocker
         ? '/tmp/videos'
@@ -54,6 +57,76 @@ export class ScrapeWright {
     this.context = await this.browser.newContext(contextOptions);
     this.page = await this.context.newPage();
     this.page.setDefaultTimeout(60_000);
+  }
+
+  enableRequestLogging(filterMethod?: 'GET' | 'POST' | 'PUT' | 'DELETE'): void {
+    if (this.requestLoggingEnabled) {
+      return; // 이미 활성화되어 있으면 무시
+    }
+
+    this.requestLoggingEnabled = true;
+    this.requestListener = (request: any) => {
+      const method = request.method();
+      const url = request.url();
+      const resourceType = request.resourceType();
+
+      // Chrome DevTools의 "Doc" 타입에 해당하는 "document" resourceType만 로깅
+      if (resourceType === 'document') {
+        if (!filterMethod || method === filterMethod) {
+          const headers = request.headers();
+          console.log(`[${method}] Request to: ${url}`);
+          console.log('Request Headers:');
+          // 각 헤더를 개별적으로 출력하여 잘림 방지
+          for (const [key, value] of Object.entries(headers)) {
+            console.log(`  ${key}: ${value}`);
+          }
+          
+          // POST 요청인 경우 body도 출력
+          if (method === 'POST') {
+            const postData = request.postData();
+            if (postData) {
+              console.log('Request Body:', postData);
+            }
+          }
+        }
+      }
+    };
+
+    this.responseListener = (response: any) => {
+      const url = response.url();
+      const status = response.status();
+      const resourceType = response.request().resourceType();
+
+      // Chrome DevTools의 "Doc" 타입에 해당하는 "document" resourceType만 로깅
+      if (resourceType === 'document') {
+        const method = response.request().method();
+        if (!filterMethod || method === filterMethod) {
+          console.log(`[${method}] Response from: ${url}`);
+          console.log(`Status Code: ${status}`);
+        }
+      }
+    };
+
+    this.page.on('request', this.requestListener);
+    this.page.on('response', this.responseListener);
+  }
+
+  disableRequestLogging(): void {
+    if (!this.requestLoggingEnabled) {
+      return;
+    }
+
+    this.requestLoggingEnabled = false;
+    
+    if (this.requestListener) {
+      this.page.off('request', this.requestListener);
+      this.requestListener = undefined;
+    }
+    
+    if (this.responseListener) {
+      this.page.off('response', this.responseListener);
+      this.responseListener = undefined;
+    }
   }
 
   async blockResourceTypes(blockedTypes: string[], allowedUrls: string[] = []) {

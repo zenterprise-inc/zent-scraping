@@ -33,6 +33,7 @@ export abstract class AbstractScraper {
 
   async init(): Promise<void> {
     await this.scrapeWright.init(this.recordVideo);
+    this.scrapeWright.enableRequestLogging();
     await this.redisClient.connect();
     this.socketClient.connect();
     this.socketClient.joinRoom();

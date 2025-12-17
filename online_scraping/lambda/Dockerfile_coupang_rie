@@ -1,0 +1,47 @@
+FROM mcr.microsoft.com/playwright:v1.52.0-jammy
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y \
+    g++ \
+    make \
+    cmake \
+    unzip \
+    libcurl4-openssl-dev \
+    autoconf \
+    libtool
+
+ENV NPM_CONFIG_CACHE=/tmp/.npm
+ENV PLAYWRIGHT_BROWSERS_PATH=0
+
+# Install Lambda Runtime Interface Emulator (RIE) for local testing
+RUN mkdir -p /opt
+RUN curl -Lo /opt/aws-lambda-rie https://github.com/aws/aws-lambda-runtime-interface-emulator/releases/latest/download/aws-lambda-rie && \
+    chmod +x /opt/aws-lambda-rie
+
+RUN npm install aws-lambda-ric -g
+
+ENV IS_DOCKER=true
+# Default DB_HOST for connecting to host MySQL (can be overridden with -e DB_HOST=...)
+ENV DB_HOST=host.docker.internal
+
+COPY *.json ./
+COPY *.ts ./
+COPY db/*.ts ./db/
+COPY gmail/*.ts ./gmail/
+COPY gmail/*.json ./gmail/
+COPY model/*.ts ./model/
+COPY websocket/*.ts ./websocket/
+
+RUN npm ci
+RUN npm run build
+
+RUN npx playwright install chromium
+
+RUN cp *.json dist/
+
+EXPOSE 9000 3306 6379 80 8080
+
+ENTRYPOINT ["/opt/aws-lambda-rie"]
+CMD ["/bin/npx", "aws-lambda-ric", "dist/main_coupang.handler"]
+
