@@ -35,12 +35,12 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Create required JSON file from secret
-        working-directory: online_scraping/coupang_cdk
         run: |
-          echo '${{ secrets.CREDENTIALS }}' > gmail/credentials.json
-          echo '${{ secrets.CREDENTIALS2 }}' > gmail/credentials2.json
-          echo '${{ secrets.TOKEN }}' > gmail/token.json
-          echo '${{ secrets.TOKEN2 }}' > gmail/token2.json
+          mkdir -p online_scraping/lambda/gmail
+          echo '${{ secrets.CREDENTIALS }}' > online_scraping/lambda/gmail/credentials.json
+          echo '${{ secrets.CREDENTIALS2 }}' > online_scraping/lambda/gmail/credentials2.json
+          echo '${{ secrets.TOKEN }}' > online_scraping/lambda/gmail/token.json
+          echo '${{ secrets.TOKEN2 }}' > online_scraping/lambda/gmail/token2.json
 
       - name: Install dependencies
         working-directory: online_scraping/coupang_cdk
