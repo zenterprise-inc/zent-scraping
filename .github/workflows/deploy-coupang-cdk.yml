@@ -42,6 +42,14 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Create required JSON file from secret
+        working-directory: online_scraping/coupang_cdk
+        run: |
+          echo '${{ secrets.CREDENTIALS }}' > gmail/credentials.json
+          echo '${{ secrets.CREDENTIALS2 }}' > gmail/credentials2.json
+          echo '${{ secrets.TOKEN }}' > gmail/token.json
+          echo '${{ secrets.TOKEN2 }}' > gmail/token2.json
+
       - name: Install dependencies
         working-directory: online_scraping/coupang_cdk
         run: npm ci
