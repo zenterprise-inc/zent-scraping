@@ -1,14 +1,6 @@
 name: Deploy Coupang CDK
 
 on:
-  push:
-    branches:
-      - main
-      - master
-    paths:
-      - 'online_scraping/coupang_cdk/**'
-      - 'online_scraping/lambda/**'
-      - '.github/workflows/deploy-coupang-cdk.yml'
   workflow_dispatch:
 
 env:
