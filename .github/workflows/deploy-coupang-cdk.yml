@@ -1,0 +1,65 @@
+name: Deploy Coupang CDK
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'online_scraping/coupang_cdk/**'
+      - 'online_scraping/lambda/**'
+      - '.github/workflows/deploy-coupang-cdk.yml'
+  workflow_dispatch:
+
+env:
+  AWS_REGION: ap-northeast-2
+  DOCKER_DEFAULT_PLATFORM: linux/amd64
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: online_scraping/coupang_cdk/package-lock.json
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          platforms: linux/amd64
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install dependencies
+        working-directory: online_scraping/coupang_cdk
+        run: npm ci
+
+      - name: Build TypeScript
+        working-directory: online_scraping/coupang_cdk
+        run: npm run build
+
+      - name: CDK Bootstrap (if needed)
+        working-directory: online_scraping/coupang_cdk
+        run: |
+          npx cdk bootstrap aws://${{ secrets.AWS_ACCOUNT_ID }}/${{ env.AWS_REGION }} || true
+
+      - name: CDK Deploy
+        working-directory: online_scraping/coupang_cdk
+        run: |
+          export CDK_DEFAULT_ACCOUNT=${{ secrets.AWS_ACCOUNT_ID }}
+          export CDK_DEFAULT_REGION=${{ env.AWS_REGION }}
+          export DOCKER_DEFAULT_PLATFORM=linux/amd64
+          npx cdk deploy --all --require-approval never
+
