@@ -1,4 +1,4 @@
-name: Deploy Coupang CDK
+name: Deploy Smartstore CDK
 
 on:
   workflow_dispatch:
@@ -11,7 +11,7 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -21,12 +21,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: online_scraping/coupang_cdk/package-lock.json
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          platforms: linux/amd64
+          cache-dependency-path: online_scraping/smartstore_cdk/package-lock.json
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -35,32 +30,23 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Create required JSON file from secret
-        run: |
-          mkdir -p online_scraping/lambda/gmail
-          echo '${{ secrets.CREDENTIALS }}' > online_scraping/lambda/gmail/credentials.json
-          echo '${{ secrets.CREDENTIALS2 }}' > online_scraping/lambda/gmail/credentials2.json
-          echo '${{ secrets.TOKEN }}' > online_scraping/lambda/gmail/token.json
-          echo '${{ secrets.TOKEN2 }}' > online_scraping/lambda/gmail/token2.json
-
       - name: Install dependencies
-        working-directory: online_scraping/coupang_cdk
+        working-directory: online_scraping/smartstore_cdk
         run: npm ci
 
       - name: Build TypeScript
-        working-directory: online_scraping/coupang_cdk
+        working-directory: online_scraping/smartstore_cdk
         run: npm run build
 
       - name: CDK Bootstrap (if needed)
-        working-directory: online_scraping/coupang_cdk
+        working-directory: online_scraping/smartstore_cdk
         run: |
           npx cdk bootstrap aws://${{ secrets.AWS_ACCOUNT_ID }}/${{ env.AWS_REGION }} || true
 
       - name: CDK Deploy
-        working-directory: online_scraping/coupang_cdk
+        working-directory: online_scraping/smartstore_cdk
         run: |
           export CDK_DEFAULT_ACCOUNT=${{ secrets.AWS_ACCOUNT_ID }}
           export CDK_DEFAULT_REGION=${{ env.AWS_REGION }}
-          export DOCKER_DEFAULT_PLATFORM=linux/amd64
           npx cdk deploy --all --require-approval never
 
