@@ -366,10 +366,7 @@ export abstract class AbstractSmartStore extends AbstractSmartStoreLogin {
       data: this.SUB_ACCOUNT_PAYLOAD,
     };
 
-    const res = await this.scrapeWright.post(
-      this.SUB_ACCOUNT_API,
-      options,
-    );
+    const res = await this.scrapeWright.post(this.SUB_ACCOUNT_API, options);
 
     // success : {"messageBodyMap":{}}
     // {"code":"BAD_REQUEST","message":"이름 항목에 허용 되지 않는 문자가 있습니다.","timestamp":"2025-06-06T12:28:16.045+0000","needAlert":true}
@@ -379,11 +376,12 @@ export abstract class AbstractSmartStore extends AbstractSmartStoreLogin {
     console.log(`Sub account request response: --${JSON.stringify(res)}--`);
     await this.dbLogger.writeLog(Log.NAVER_COMMERCE_REQUEST_SUB_ACCOUNT);
 
-    const success =
+    const success = !!(
       res &&
       typeof res === 'object' &&
       res.messageBodyMap &&
-      Object.keys(res.messageBodyMap).length === 0 ;
+      Object.keys(res.messageBodyMap).length === 0
+    );
     await this.redisClient.set(
       this.redisClient.getSubAccountKey(),
       success.toString(),

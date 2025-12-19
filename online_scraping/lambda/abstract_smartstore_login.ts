@@ -12,7 +12,6 @@ export abstract class AbstractSmartStoreLogin extends AbstractScraper {
   protected password: string;
   protected bizNo: string;
 
-  private naverLog: Log | null = null;
   protected isTerminated = false;
 
   private readonly GRAPHQL_SNS_LOGIN_API =
@@ -92,7 +91,10 @@ export abstract class AbstractSmartStoreLogin extends AbstractScraper {
             'style',
           )) == null
         ) {
-          this.naverLog = Log.NAVER_WRONG_ACCOUNT;
+          await this.sendMessage({
+            action: false,
+            type: StatusType.WRONG_ACCOUNT,
+          });
           await this.dbLogger.writeLog(Log.NAVER_WRONG_ACCOUNT);
           return false;
         }
@@ -355,7 +357,9 @@ export abstract class AbstractSmartStoreLogin extends AbstractScraper {
       action: false,
       type: StatusType.CONSECUTIVE_CAPTCHA_FAILURES,
     });
-    await this.dbLogger.writeLog(Log.NAVER_COMMERCE_CONSECUTIVE_CAPTCHA_FAILURES);
+    await this.dbLogger.writeLog(
+      Log.NAVER_COMMERCE_CONSECUTIVE_CAPTCHA_FAILURES,
+    );
     return false;
   }
 
@@ -401,17 +405,11 @@ export abstract class AbstractSmartStoreLogin extends AbstractScraper {
           '//div[contains(text(), "비밀번호가 잘못 입력되었습니다")]',
         )
       ) {
-        if (this.naverLog === Log.NAVER_WRONG_ACCOUNT) {
-          await this.sendMessage({
-            action: false,
-            type: StatusType.WRONG_ACCOUNT,
-          });
-        } else {
-          await this.sendMessage({
-            action: false,
-            type: StatusType.LINK_FAILURE,
-          });
-        }
+        await this.sendMessage({
+          action: false,
+          type: StatusType.WRONG_ACCOUNT,
+        });
+
         await this.dbLogger.writeLog(Log.NAVER_COMMERCE_WRONG_ACCOUNT);
         return false;
       }

@@ -24,13 +24,24 @@ export class ScrapeWright {
 
   constructor() {}
 
-  async init(recordVideo: boolean = false): Promise<void> {
-    this.browser = await chromium.launch({
-      channel: 'chrome',
-      headless: headless,
-      devtools: false,
-      args: args,
-    });
+  async init(
+    browerChannel: string = '',
+    recordVideo: boolean = false,
+  ): Promise<void> {
+    this.browser = await chromium.launch(
+      browerChannel
+        ? {
+            channel: browerChannel,
+            headless: headless,
+            devtools: false,
+            args: args,
+          }
+        : {
+            headless: headless,
+            devtools: false,
+            args: args,
+          },
+    );
 
     const contextOptions: any = {
       locale: 'ko-KR',

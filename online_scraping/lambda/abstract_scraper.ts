@@ -16,6 +16,7 @@ export abstract class AbstractScraper {
   protected redisClient: RedisClient;
   protected socketClient: SocketClient;
   protected dbLogger: DBLogger;
+  private readonly browserChannel: string;
   private readonly recordVideo: boolean = false;
 
   protected constructor(
@@ -29,10 +30,11 @@ export abstract class AbstractScraper {
     this.socketClient = new SocketClient(onlineMall, userId, bizNo);
     this.dbLogger = new DBLogger(onlineMall, userId, bizNo, this.redisClient);
     this.recordVideo = recordVideo;
+    this.browserChannel = onlineMall == OnlineMall.Coupang ? 'chrome' : '';
   }
 
   async init(): Promise<void> {
-    await this.scrapeWright.init(this.recordVideo);
+    await this.scrapeWright.init(this.browserChannel, this.recordVideo);
     await this.redisClient.connect();
     this.socketClient.connect();
     this.socketClient.joinRoom();
