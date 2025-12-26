@@ -70,21 +70,21 @@ export class DBLogger {
     scrapingLog.userId = this.userId;
     scrapingLog.bizNo = this.bizNo;
     scrapingLog.log = log.slice(0, 254);
-    //scrapingLog.createdAt = new Date();
+    scrapingLog.createdAt = new Date();
 
     if (image) {
-      scrapingLog.image = image;
-      // if (Buffer.isBuffer(image)) {
-      //   scrapingLog.imgBase64 = image.toString('base64');
-      // } else {
-      //   scrapingLog.imgBase64 = image;
-      // }
-      //
-      // scrapingLog.image = undefined;
+      //scrapingLog.image = image;
+      if (Buffer.isBuffer(image)) {
+        scrapingLog.imgBase64 = image.toString('base64');
+      } else {
+        scrapingLog.imgBase64 = image;
+      }
+
+      scrapingLog.image = undefined;
     }
 
-    //await this.redisClient.lpushLog(scrapingLog);
-    await AppDataSource.manager.save(scrapingLog);
+    await this.redisClient.lpushLog(scrapingLog);
+    // await AppDataSource.manager.save(scrapingLog);
   }
 
   async updateSmartStoreDetailStatus(
